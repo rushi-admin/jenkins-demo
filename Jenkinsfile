@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        MY_SECRET = credentials("my-secret")
+    }
+
     parameters {
         choice(
             name: 'ENV',
