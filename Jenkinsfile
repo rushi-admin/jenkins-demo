@@ -1,24 +1,18 @@
 pipeline {
     agent any
 
-    environment {
-        APP_NAME = "jenkins-demo-app"
-        ENV = "dev"
-        AWS_REGION = "ap-south-1"
+    parameters {
+        choice(
+            name: 'ENV',
+            choices: ['dev', 'qa', 'prod'],
+            description: 'Select environment'
+        )
     }
 
     stages {
-        stage('Print Env') {
+        stage('Selected Env') {
             steps {
-                echo "App name is ${APP_NAME}"
-                echo "Environment is ${ENV}"
-                echo "Region is ${AWS_REGION}"
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo "Building ${APP_NAME}"
+                echo "Deploying to ${params.ENV}"
             }
         }
     }
