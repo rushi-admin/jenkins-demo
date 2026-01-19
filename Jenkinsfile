@@ -1,5 +1,11 @@
 pipeline {
-  agent any 
+  agent any
+
+  environment {
+    APP_NAME = 'jenkins-demo-app'
+    ENV = 'dev'
+    AWS_REGION = 'us-east-1'
+  }
 
   stages {
     stage('Checkout') {
@@ -10,7 +16,7 @@ pipeline {
     }
     stage('Build'){
       steps {
-        echo 'building code'
+        echo 'building app ${APP_NAME}'
       }
     }
     stage('Test'){
@@ -22,6 +28,9 @@ pipeline {
       steps {
         echo 'deploying the code....deployed!'
       }
+    }
+    stage('Print Env'){
+      echo 'app name is ${APP_NAME}, env is ${ENV} and region is ${AWS_REGION}'
     }
   }
 }
