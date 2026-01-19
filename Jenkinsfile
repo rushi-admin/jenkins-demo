@@ -2,21 +2,29 @@ pipeline {
     agent any
 
     environment {
-        MY_SECRET = credentials("my-secret")
-    }
-
-    parameters {
-        choice(
-            name: 'ENV',
-            choices: ['dev', 'qa', 'prod'],
-            description: 'Select environment'
-        )
+        IMAGE_NAME = "jenkins-demo"
+        IMAGE_TAG = "v1"
     }
 
     stages {
-        stage('Selected Env') {
+
+        stage('Checkout') {
             steps {
-                echo "Deploying to ${params.ENV}"
+                checkout scm
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                  docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                '''
+            }
+        }
+
+        stage('Docker Images') {
+            steps {
+                sh 'docker images'
             }
         }
     }
