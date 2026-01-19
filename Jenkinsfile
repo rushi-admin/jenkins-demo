@@ -30,7 +30,9 @@ pipeline {
       }
     }
     stage('Print Env'){
+      steps {
       echo 'app name is ${APP_NAME}, env is ${ENV} and region is ${AWS_REGION}'
+      }
     }
   }
 }
