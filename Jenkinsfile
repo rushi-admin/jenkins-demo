@@ -3,36 +3,33 @@ pipeline {
 
     environment {
         AWS_REGION = "us-east-1"
-        ECR_REPO   = "269336772098.dkr.ecr.us-east-1.amazonaws.com/testpocjen01"
-        IMAGE_TAG  = "v1"
-        IMAGE_NAME = "jenkins-demo"
+        ECR_REPO = "269336772098.dkr.ecr.us-east-1.amazonaws.com/testpocjen01"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        CLUSTER_NAME = "srv6-va"
     }
 
     stages {
 
-        stage('Build') {
+        stage('Build & Push') {
             steps {
-                sh """
-                  docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                """
+                sh '''
+                  docker build -t jenkins-demo:$IMAGE_TAG .
+                  aws ecr get-login-password --region $AWS_REGION \
+                  | docker login --username AWS --password-stdin $ECR_REPO
+                  docker tag jenkins-demo:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
+                  docker push $ECR_REPO:$IMAGE_TAG
+                '''
             }
         }
 
-        stage('ECR Login') {
+        stage('Deploy to EKS') {
             steps {
-                sh """
-                  aws ecr get-login-password --region ${AWS_REGION} \
-                  | docker login --username AWS --password-stdin ${ECR_REPO}
-                """
-            }
-        }
-
-        stage('Push Image') {
-            steps {
-                sh """
-                  docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
-                  docker push ${ECR_REPO}:${IMAGE_TAG}
-                """
+                sh '''
+                  aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+                  sed -i "s|<ECR-URI>:v1|$ECR_REPO:$IMAGE_TAG|" deployment.yaml
+                  kubectl apply -f deployment.yaml
+                  kubectl apply -f service.yaml
+                '''
             }
         }
     }
